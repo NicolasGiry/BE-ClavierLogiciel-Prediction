@@ -11,11 +11,14 @@ public class Key extends JButton {
     private static final int SIDES = 6;
     private static final int ROTATION = 30;
     private Color borderColor = Color.BLACK;
+    private Color bgColor = Color.WHITE;
     
     private String text = "";
+    private String letter;
 
-    public Key(String letter, JTextArea textArea, int fontSize, ClavierFrame clavierFrame) {
+    public Key(String l, JTextArea textArea, int fontSize, ClavierFrame clavierFrame) {
         Font police = new Font("Arial", Font.PLAIN, fontSize);
+        this.letter = l;
         setFont(police);
         setText(letter);
         setContentAreaFilled(false);
@@ -43,8 +46,14 @@ public class Key extends JButton {
                 }
                 
                 textArea.setText(text);
+                clavierFrame.updateClavier();
             }
         });
+    }
+
+    public void changeLetter(String newLetter) {
+        letter = newLetter;
+        setText(newLetter);
     }
 
     public void changeBorderColor(Color color) {
@@ -57,7 +66,7 @@ public class Key extends JButton {
         if (getModel().isPressed()) {
             g.setColor(Color.LIGHT_GRAY);
         } else {
-            g.setColor(Color.white);
+            g.setColor(bgColor);
         }
         
 

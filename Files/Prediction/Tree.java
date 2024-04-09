@@ -79,7 +79,8 @@ public class Tree implements Comparable<Tree>{
 
         if (display) {
             for (String s : lettres) {
-                System.out.print(s + "  ");
+                if (s!="  ")
+                    System.out.print(s + "  ");
             }
             System.out.println("");
         }

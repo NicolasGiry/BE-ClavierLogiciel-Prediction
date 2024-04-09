@@ -111,7 +111,7 @@ public class ClavierFrame extends javax.swing.JFrame {
         
         pack();
 
-        arbre.predictNext(true);
+        updateClavier();
     }
 
     public void predict(String letter) {
@@ -119,12 +119,12 @@ public class ClavierFrame extends javax.swing.JFrame {
         if (arbre == null) {
             reset();
         }
-        arbre.predictNext(true);
+        //arbre.predictNext(true);
     }
 
     public void reset() {
         arbre = predicteur.getRacine();
-        arbre.predictNext(true);
+        //arbre.predictNext(true);
     }
 
     public void supp() {
@@ -134,7 +134,15 @@ public class ClavierFrame extends javax.swing.JFrame {
         } else {
             reset();
         }
-        arbre.predictNext(true);
+        //arbre.predictNext(true);
+    }
+
+    public void updateClavier() {
+        letters = predicteur.updateClavier(letters, arbre.predictNext(true),26);
+        
+        for (int i=0; i<NB_KEYS; i++) {
+            ((Key) keys[i]).changeLetter(letters.get(i));
+        }
     }
 
     /**

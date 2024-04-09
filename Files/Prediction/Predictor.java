@@ -15,10 +15,6 @@ public class Predictor {
         else if (c==10) {
             c=32;
         }
-        // ne pas prendre en compte les caractères non présents sur le clavier
-        else if (c<=191 && c>=123 || c<=96 && c>=91 || c<=62 && c>=34 || c==11 || c==13 || c<=31 && c>=1) {
-            c = 0;
-        }
         // é è ê ë -> E
         else if (c<=235 && c>=232 || c<=203 && c>=200) {
             c = 69;
@@ -39,6 +35,16 @@ public class Predictor {
         else if (c<=207 && c>=204 || c<=239 && c>=236) {
             c = 73;
         }
+        // ç -> C
+        else if (c==199 || c==231) {
+            c = 67;
+        } // ne pas prendre en compte les caractères non présents sur le clavier
+        // else if (c<=191 && c>=123 || c<=96 && c>=91 || c<=64 && c>=33 || c==11 || c==13 || c<=31 && c>=1 || c==215 || c==198 ) {
+        //     c = 0;
+        // }
+        else if (c>90 || (c<65 && c!=32)) {
+            c=0;
+        }
 
         return ""+(char) c;
     }
@@ -46,18 +52,25 @@ public class Predictor {
 
     private static void createCorpusTXT() {
         try {
-            File wiki = new File("Prediction/wikipediaFR-TXT.txt/wikipediaTXT.txt");
+            File wiki = new File("C:/Users/nicol/OneDrive/Documents/Cours/S6/BE/wikipediaFR-TXT.txt/wikipediaTXT.txt");
             FileReader wikiReader = new FileReader(wiki);
             BufferedReader wikiBufferedReader = new BufferedReader(wikiReader);
+            File livre = new File("C:/Users/nicol/OneDrive/Documents/Cours/S6/BE/Corpus/proust_a_la_recherche_du_temps_perdu_1_swann.txt");
+            FileReader livreReader = new FileReader(livre);
+            BufferedReader livreBufferedReader = new BufferedReader(livreReader);
             File scrabble = new File("Prediction/dico.txt");
             FileReader scrabbleReader = new FileReader(scrabble);
             BufferedReader scrabbleBufferedReader = new BufferedReader(scrabbleReader);
             PrintWriter writer = new PrintWriter("Prediction/corpus.txt");
             try {
-                int c=wikiBufferedReader.read();
+                int c= wikiBufferedReader.read();
                 for (int i=0; i<10000000 && c!=-1; i++) {
                     writer.print(reformateChar(c));
                     c = wikiBufferedReader.read();
+                }
+                while((c = livreBufferedReader.read()) != -1)
+                {
+                    writer.print(reformateChar(c));
                 }
                 while((c = scrabbleBufferedReader.read()) != -1)
                 {
@@ -66,6 +79,8 @@ public class Predictor {
             } finally {
                 wikiReader.close();
                 wikiBufferedReader.close();
+                livreReader.close();
+                livreBufferedReader.close();
                 scrabbleReader.close();
                 scrabbleBufferedReader.close();
                 writer.close();
@@ -107,10 +122,140 @@ public class Predictor {
         for (String letter : corpus) {
             if (letter.equals(separation)) {
                 current = racine;
-            } else {
+            } else if (!letter.equals(((char) 0)+"")) {
                 current = current.addLettre(letter, current);
             }
         }
+    }
+
+    public List<String> updateClavier (List<String> oldClavier, List<String> prediction, int methode) {
+        switch (methode) {
+            case 1:
+                return updateClavier1Letter(oldClavier, prediction);
+            case 2:
+                return updateClavier1LetterAlways(oldClavier, prediction);
+            default:
+                return updateClavierLettersAlways(oldClavier, prediction, methode);
+        }
+    }
+
+    // placer la lettre la plus probable en première position si elle n'est pas dans les 6 premières lettres (premier cercle)
+    public List<String> updateClavier1Letter (List<String> oldClavier, List<String> prediction) {
+        List<String> newClavier = new ArrayList<>();
+        List<String> premierCercle = new ArrayList<>();
+        String firstLetter = prediction.get(0);
+
+        for (int i=0; i<6 && i<oldClavier.size(); i++) {
+            premierCercle.add(oldClavier.get(i));
+        }
+
+        if (!premierCercle.contains(firstLetter)) {
+            int indice = oldClavier.indexOf(firstLetter);
+            String oldLetter = oldClavier.get(0);
+            newClavier.add(firstLetter);
+            for (int i=1; i<oldClavier.size()-2; i++) {
+                if (i==indice) {
+                    newClavier.add(oldLetter);
+                } else {
+                    newClavier.add(oldClavier.get(i));
+                }
+            }
+
+            // ajouter espace et retour en arrière
+            newClavier.add(oldClavier.get(oldClavier.size()-2));
+            newClavier.add(oldClavier.get(oldClavier.size()-1));
+            return newClavier;
+        }
+        return oldClavier;
+    }
+
+    // placer la lettre la plus probable en première position même si elle est dans le premier cercle
+    public List<String> updateClavier1LetterAlways (List<String> oldClavier, List<String> prediction) {
+        List<String> newClavier = new ArrayList<>();
+        String firstLetter = prediction.get(0);
+
+        int indice = oldClavier.indexOf(firstLetter);
+        String oldLetter = oldClavier.get(0);
+        newClavier.add(firstLetter);
+        for (int i=1; i<oldClavier.size()-2; i++) {
+            if (i==indice) {
+                newClavier.add(oldLetter);
+            } else {
+                newClavier.add(oldClavier.get(i));
+            }
+        }
+
+        // ajouter espace et retour en arrière
+        newClavier.add(oldClavier.get(oldClavier.size()-2));
+        newClavier.add(oldClavier.get(oldClavier.size()-1));
+        return newClavier;
+    }
+
+    // placer le nb de lettres voulues les plus probables en premières positions 
+    public List<String> updateClavierLettersAlways (List<String> oldClavier, List<String> prediction, int nbLetters) {
+        List<String> newClavier = new ArrayList<>();
+        int indice = 0, i=0;
+
+        for (i=0; i<nbLetters && i<prediction.size(); i++) {
+            newClavier.add(prediction.get(i));
+        }
+
+        for (; i<oldClavier.size(); i++) {
+            if (newClavier.contains(oldClavier.get(i))) {
+                while (newClavier.contains(oldClavier.get(indice))) {
+                    indice ++;
+                }
+                newClavier.add(oldClavier.get(indice));
+                indice ++;
+            } else {
+                newClavier.add(oldClavier.get(i));
+            }
+        }
+
+        return newClavier;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public List<String> updateClavierLettersAlwaysBis (List<String> oldClavier, List<String> prediction, int nbLetters) {
+        List<String> newClavier = new ArrayList<>();
+
+        String[] oldLetters = new String[nbLetters];
+        List<Integer> indices = new ArrayList<>();
+        int i;
+        for (i=0; i<nbLetters && i<prediction.size(); i++) {
+            oldLetters[i] = oldClavier.get(i);
+            indices.add(oldClavier.indexOf(prediction.get(i)));
+            newClavier.add(prediction.get(i));
+        }
+        System.out.println(i);
+        for (; i<oldClavier.size()-2; i++) {
+            if (indices.contains(i)) {
+                newClavier.add(oldLetters[indices.indexOf(i)]);
+            } else {
+                newClavier.add(oldClavier.get(i));
+            }
+        }
+
+        // ajouter espace et retour en arrière
+        newClavier.add(oldClavier.get(oldClavier.size()-2));
+        newClavier.add(oldClavier.get(oldClavier.size()-1));
+        return newClavier;
     }
 
     public Tree getRacine() {
