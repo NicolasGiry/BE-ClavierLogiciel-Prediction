@@ -22,3 +22,8 @@ https://github.com/NicolasGiry/BE-ClavierLogiciel-Prediction/assets/114723956/75
 demonstration de prediction dynamique de toutes les touches :
 
 https://github.com/NicolasGiry/BE-ClavierLogiciel-Prediction/assets/114723956/8eec064b-18c0-4c42-ac04-1c40a89e2795
+
+demonstration de la mise à jour ajoutant les paramètres : 
+
+https://github.com/NicolasGiry/BE-ClavierLogiciel-Prediction/assets/114723956/6b506d92-cc65-41b6-867c-52a55e573af7
+
